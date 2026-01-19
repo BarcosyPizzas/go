@@ -3,6 +3,8 @@ package storage
 import (
 	"database/sql"
 	"gymlog/domain"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type sqliteStorage struct {
@@ -10,8 +12,15 @@ type sqliteStorage struct {
 }
 
 // NewSqliteStorage creates a new SQLite storage.
-func NewSqliteStorage(db *sql.DB) Storage {
-	return &sqliteStorage{db: db}
+func NewSqliteStorage(dbPath string) (Storage, error) {
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return nil, err
+	}
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
+	return &sqliteStorage{db: db}, nil
 }
 
 func (s *sqliteStorage) Close() error {
