@@ -7,6 +7,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// sqliteStorage is the implementation of the Storage interface for SQLite.
 type sqliteStorage struct {
 	db *sql.DB
 }
