@@ -14,6 +14,11 @@ func NewInmemStorage() Storage {
 	}
 }
 
+func (s *inmemStorage) SaveRoutine(routine domain.Routine) error {
+	s.routines[routine.ID] = routine
+	return nil
+}
+
 // Close closes the storage.
 func (s *inmemStorage) Close() error {
 	return nil

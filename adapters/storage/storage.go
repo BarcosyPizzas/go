@@ -6,4 +6,5 @@ import "gymlog/domain"
 type Storage interface {
 	Close() error
 	Exercises() ([]domain.Exercise, error)
+	SaveRoutine(routine domain.Routine) error
 }

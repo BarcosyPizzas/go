@@ -12,12 +12,13 @@ type Routine struct {
 
 // ExerciseDetail defines a single exercise with its sets and reps.
 type ExerciseDetail struct {
-	Exercise Exercise
-	Sets     int
-	Reps     int
+	ID   int
+	Name string
+	Sets int
+	Reps int
 }
 
-func NewExerciseDetail(exercise Exercise, sets, reps int) ExerciseDetail {
+func NewExerciseDetail(id int, name string, sets, reps int) ExerciseDetail {
 	if sets == 0 {
 		sets = 3
 	}
@@ -26,19 +27,11 @@ func NewExerciseDetail(exercise Exercise, sets, reps int) ExerciseDetail {
 		reps = 6
 	}
 	return ExerciseDetail{
-		Exercise: exercise,
-		Sets:     sets,
-		Reps:     reps,
+		ID:   id,
+		Name: name,
+		Sets: sets,
+		Reps: reps,
 	}
-}
-
-// Need to think more about this, im troling, I hate cursor stop creating comments for me fakin shit.
-func ExerciseDetails(exercises []Exercise) []ExerciseDetail {
-	exerciseDetails := []ExerciseDetail{}
-	for _, exercise := range exercises {
-		exerciseDetails = append(exerciseDetails, NewExerciseDetail(exercise, 3, 6))
-	}
-	return exerciseDetails
 }
 
 func CreateRoutine(name, description string, exercises []ExerciseDetail) (Routine, error) {

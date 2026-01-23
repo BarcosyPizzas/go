@@ -47,3 +47,25 @@ func (s *sqliteStorage) Exercises() ([]domain.Exercise, error) {
 	}
 	return exercises, nil
 }
+
+func (s *sqliteStorage) SaveRoutine(routine domain.Routine) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("INSERT INTO routines (name, description) VALUES (?, ?)", routine.Name, routine.Description)
+	if err != nil {
+		return err
+	}
+
+	for i, exercise := range routine.Exercises {
+		_, err = tx.Exec("INSERT INTO routine_exercises (routine_id, exercise_id, order_index, sets, reps) VALUES (?, ?, ?, ?, ?)", routine.ID, exercise.ID, i, exercise.Sets, exercise.Reps)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
