@@ -10,13 +10,15 @@ import (
 type gymlogServer struct {
 	server            *http.Server
 	routineRepository application.RoutineRepository
+	userRepository    application.UserRepository
 }
 
 // NewServer is the constructor for the server.
-func NewServer(routineRepository application.RoutineRepository) *gymlogServer {
+func NewServer(routineRepository application.RoutineRepository, userRepository application.UserRepository) *gymlogServer {
 
 	s := &gymlogServer{
 		routineRepository: routineRepository,
+		userRepository:    userRepository,
 	}
 
 	s.server = &http.Server{
@@ -34,6 +36,7 @@ func (s *gymlogServer) loadHandlers() http.Handler {
 		w.Write([]byte("Hello, World!"))
 	})
 	handler.HandleFunc("/exercises", s.handleGetExercises)
+	handler.HandleFunc("/register", s.handleRegister)
 	return handler
 }
 

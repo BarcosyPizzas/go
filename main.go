@@ -13,7 +13,7 @@ func main() {
 		log.Fatal(err)
 	}
 	routineRepository := application.NewGymRepository(storage)
-
-	gymlogServer := server.NewServer(routineRepository)
+	userRepository := application.NewUserRepo(storage)
+	gymlogServer := server.NewServer(routineRepository, userRepository)
 	log.Fatal(gymlogServer.Start())
 }

@@ -69,3 +69,36 @@ func (s *sqliteStorage) SaveRoutine(routine domain.Routine) error {
 
 	return tx.Commit()
 }
+
+func (s *sqliteStorage) Users(username string) ([]domain.User, error) {
+	rows, err := s.db.Query("SELECT id, username, email, password_hash FROM users WHERE username = ?", username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := []domain.User{}
+	for rows.Next() {
+		var user domain.User
+		err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	return users, nil
+}
+
+func (s *sqliteStorage) SaveUser(username string, email string, passwordHash string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)", username, email, passwordHash)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}

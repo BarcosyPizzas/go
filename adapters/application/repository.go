@@ -7,3 +7,8 @@ type RoutineRepository interface {
 	Exercises() ([]domain.Exercise, error)
 	SetRoutine(routine domain.Routine) error
 }
+
+type UserRepository interface {
+	Users(username string) ([]domain.User, error)
+	SaveUser(user domain.User) error
+}

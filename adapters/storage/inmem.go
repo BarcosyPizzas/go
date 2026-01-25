@@ -5,12 +5,14 @@ import "gymlog/domain"
 type inmemStorage struct {
 	exercises map[int]domain.Exercise
 	routines  map[int]domain.Routine
+	users     map[string]domain.User
 }
 
 func NewInmemStorage() Storage {
 	return &inmemStorage{
 		exercises: make(map[int]domain.Exercise),
 		routines:  make(map[int]domain.Routine),
+		users:     make(map[string]domain.User),
 	}
 }
 
@@ -31,4 +33,13 @@ func (s *inmemStorage) Exercises() ([]domain.Exercise, error) {
 		{ID: 2, Name: "Pull-up", Target: "Back"},
 		{ID: 3, Name: "Squat", Target: "Legs"},
 	}, nil
+}
+
+func (s *inmemStorage) Users(username string) ([]domain.User, error) {
+	return []domain.User{s.users[username]}, nil
+}
+
+func (s *inmemStorage) SaveUser(username string, email string, passwordHash string) error {
+	s.users[username] = domain.User{ID: 1, Username: username, Email: email, PasswordHash: passwordHash}
+	return nil
 }

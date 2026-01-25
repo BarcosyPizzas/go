@@ -7,4 +7,6 @@ type Storage interface {
 	Close() error
 	Exercises() ([]domain.Exercise, error)
 	SaveRoutine(routine domain.Routine) error
+	Users(username string) ([]domain.User, error)
+	SaveUser(username string, email string, passwordHash string) error
 }
