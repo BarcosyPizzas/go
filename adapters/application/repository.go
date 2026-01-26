@@ -11,4 +11,5 @@ type RoutineRepository interface {
 type UserRepository interface {
 	Users(username string) ([]domain.User, error)
 	SaveUser(user domain.User) error
+	SaveSession(userID int, sessionToken string, csrfToken string) error
 }

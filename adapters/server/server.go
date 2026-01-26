@@ -37,6 +37,7 @@ func (s *gymlogServer) loadHandlers() http.Handler {
 	})
 	handler.HandleFunc("/exercises", s.handleGetExercises)
 	handler.HandleFunc("/register", s.handleRegister)
+	handler.HandleFunc("/login", s.handleLogin)
 	return handler
 }
 

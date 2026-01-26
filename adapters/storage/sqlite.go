@@ -102,3 +102,16 @@ func (s *sqliteStorage) SaveUser(username string, email string, passwordHash str
 	}
 	return tx.Commit()
 }
+
+func (s *sqliteStorage) SaveSession(userID int, sessionToken string, csrfToken string) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	_, err = tx.Exec("INSERT INTO sessions (user_id, session_token, csrf_token) VALUES (?, ?, ?)", userID, sessionToken, csrfToken)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}

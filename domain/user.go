@@ -7,3 +7,9 @@ type User struct {
 	Email        string
 	PasswordHash string
 }
+
+type UserSession struct {
+	UserID       int
+	SessionToken string
+	CSRFToken    string
+}

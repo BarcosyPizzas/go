@@ -6,6 +6,7 @@ type inmemStorage struct {
 	exercises map[int]domain.Exercise
 	routines  map[int]domain.Routine
 	users     map[string]domain.User
+	sessions  map[int]domain.UserSession
 }
 
 func NewInmemStorage() Storage {
@@ -13,6 +14,7 @@ func NewInmemStorage() Storage {
 		exercises: make(map[int]domain.Exercise),
 		routines:  make(map[int]domain.Routine),
 		users:     make(map[string]domain.User),
+		sessions:  make(map[int]domain.UserSession),
 	}
 }
 
@@ -41,5 +43,10 @@ func (s *inmemStorage) Users(username string) ([]domain.User, error) {
 
 func (s *inmemStorage) SaveUser(username string, email string, passwordHash string) error {
 	s.users[username] = domain.User{ID: 1, Username: username, Email: email, PasswordHash: passwordHash}
+	return nil
+}
+
+func (s *inmemStorage) SaveSession(userID int, sessionToken string, csrfToken string) error {
+	s.sessions[userID] = domain.UserSession{UserID: userID, SessionToken: sessionToken, CSRFToken: csrfToken}
 	return nil
 }

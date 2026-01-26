@@ -24,3 +24,7 @@ func (r *UserRepo) Users(username string) ([]domain.User, error) {
 func (r *UserRepo) SaveUser(user domain.User) error {
 	return r.storage.SaveUser(user.Username, user.Email, user.PasswordHash)
 }
+
+func (r *UserRepo) SaveSession(userID int, sessionToken string, csrfToken string) error {
+	return r.storage.SaveSession(userID, sessionToken, csrfToken)
+}

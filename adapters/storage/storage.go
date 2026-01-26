@@ -9,4 +9,5 @@ type Storage interface {
 	SaveRoutine(routine domain.Routine) error
 	Users(username string) ([]domain.User, error)
 	SaveUser(username string, email string, passwordHash string) error
+	SaveSession(userID int, sessionToken string, csrfToken string) error
 }

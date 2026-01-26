@@ -35,6 +35,15 @@ CREATE TABLE routine_exercises (
     FOREIGN KEY (exercise_id) REFERENCES exercises(id) ON DELETE CASCADE
 );
 
+-- Tabla de sesiones
+CREATE TABLE sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    session_token VARCHAR(255) NOT NULL,
+    csrf_token VARCHAR(255) NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Índices para mejorar el rendimiento de las consultas
 CREATE INDEX idx_routines_user_id ON routines(user_id);
 CREATE INDEX idx_routine_exercises_routine_id ON routine_exercises(routine_id);
