@@ -48,20 +48,24 @@ func (s *sqliteStorage) Exercises() ([]domain.Exercise, error) {
 	return exercises, nil
 }
 
-func (s *sqliteStorage) SaveRoutine(routine domain.Routine) error {
+func (s *sqliteStorage) SaveRoutine(userID int, routine domain.Routine) error {
 	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("INSERT INTO routines (name, description) VALUES (?, ?)", routine.Name, routine.Description)
+	result, err := tx.Exec("INSERT INTO routines (name, description, user_id) VALUES (?, ?, ?)", routine.Name, routine.Description, userID)
+	if err != nil {
+		return err
+	}
+	routineID, err := result.LastInsertId()
 	if err != nil {
 		return err
 	}
 
 	for i, exercise := range routine.Exercises {
-		_, err = tx.Exec("INSERT INTO routine_exercises (routine_id, exercise_id, order_index, sets, reps) VALUES (?, ?, ?, ?, ?)", routine.ID, exercise.ID, i, exercise.Sets, exercise.Reps)
+		_, err = tx.Exec("INSERT INTO routine_exercises (routine_id, exercise_id, order_index, sets, reps) VALUES (?, ?, ?, ?, ?)", routineID, exercise.ID, i, exercise.Sets, exercise.Reps)
 		if err != nil {
 			return err
 		}
@@ -110,6 +114,31 @@ func (s *sqliteStorage) SaveSession(userID int, sessionToken string, csrfToken s
 	}
 	defer tx.Rollback()
 	_, err = tx.Exec("INSERT INTO sessions (user_id, session_token, csrf_token) VALUES (?, ?, ?)", userID, sessionToken, csrfToken)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func (s *sqliteStorage) GetUserSession(userID int) (domain.UserSession, error) {
+	row := s.db.QueryRow("SELECT session_token, csrf_token FROM sessions WHERE user_id = ?", userID)
+
+	var domainUserSession domain.UserSession
+	err := row.Scan(&domainUserSession.SessionToken, &domainUserSession.CSRFToken)
+	if err != nil {
+		return domain.UserSession{}, err
+	}
+	domainUserSession.UserID = userID
+	return domainUserSession, nil
+}
+
+func (s *sqliteStorage) DeleteSession(userID int) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	_, err = tx.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
 	if err != nil {
 		return err
 	}

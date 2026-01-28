@@ -36,8 +36,10 @@ func (s *gymlogServer) loadHandlers() http.Handler {
 		w.Write([]byte("Hello, World!"))
 	})
 	handler.HandleFunc("/exercises", s.handleGetExercises)
+	handler.HandleFunc("/routines", s.handleSetRoutine)
 	handler.HandleFunc("/register", s.handleRegister)
 	handler.HandleFunc("/login", s.handleLogin)
+	handler.HandleFunc("/logout", s.handleLogout)
 	return handler
 }
 

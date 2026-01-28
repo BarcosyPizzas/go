@@ -29,14 +29,31 @@ func (s *gymlogServer) handleGetExercises(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusOK)
 }
 
+// handleSetRoutine sets a routine for a user.
 func (s *gymlogServer) handleSetRoutine(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Must be a POST request", http.StatusMethodNotAllowed)
 		return
 	}
 
+	if err := s.Authorize(r); err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	username := r.FormValue("username")
+	user, err := s.userRepository.Users(username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(user) == 0 {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
 	var routineRequest postRoutineRequest
-	err := json.NewDecoder(r.Body).Decode(&routineRequest)
+	err = json.NewDecoder(r.Body).Decode(&routineRequest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -50,7 +67,7 @@ func (s *gymlogServer) handleSetRoutine(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = s.routineRepository.SetRoutine(routine)
+	err = s.routineRepository.SetRoutine(user[0].ID, routine)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -67,16 +84,15 @@ type postRoutineRequest struct {
 }
 
 type postRoutineExercise struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Sets int    `json:"sets"`
-	Reps int    `json:"reps"`
+	ID   int `json:"id"`
+	Sets int `json:"sets"`
+	Reps int `json:"reps"`
 }
 
 func routineRequestToExerciseDetails(request postRoutineRequest) []domain.ExerciseDetail {
 	exerciseDetails := []domain.ExerciseDetail{}
 	for _, exercise := range request.Exercises {
-		exerciseDetails = append(exerciseDetails, domain.NewExerciseDetail(exercise.ID, exercise.Name, exercise.Sets, exercise.Reps))
+		exerciseDetails = append(exerciseDetails, domain.NewExerciseDetail(exercise.ID, exercise.Sets, exercise.Reps))
 	}
 	return exerciseDetails
 }

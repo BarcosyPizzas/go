@@ -25,9 +25,9 @@ func (r *GymRepository) Exercises() ([]domain.Exercise, error) {
 	return exercises, nil
 }
 
-func (r *GymRepository) SetRoutine(routine domain.Routine) error {
+func (r *GymRepository) SetRoutine(userID int, routine domain.Routine) error {
 	if len(routine.Exercises) == 0 {
 		return errors.New("routine must have at least one exercise")
 	}
-	return r.storage.SaveRoutine(routine)
+	return r.storage.SaveRoutine(userID, routine)
 }

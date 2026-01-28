@@ -13,12 +13,11 @@ type Routine struct {
 // ExerciseDetail defines a single exercise with its sets and reps.
 type ExerciseDetail struct {
 	ID   int
-	Name string
 	Sets int
 	Reps int
 }
 
-func NewExerciseDetail(id int, name string, sets, reps int) ExerciseDetail {
+func NewExerciseDetail(id int, sets, reps int) ExerciseDetail {
 	if sets == 0 {
 		sets = 3
 	}
@@ -28,7 +27,6 @@ func NewExerciseDetail(id int, name string, sets, reps int) ExerciseDetail {
 	}
 	return ExerciseDetail{
 		ID:   id,
-		Name: name,
 		Sets: sets,
 		Reps: reps,
 	}
