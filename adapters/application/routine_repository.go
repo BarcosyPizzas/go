@@ -31,3 +31,19 @@ func (r *GymRepository) SetRoutine(userID int, routine domain.Routine) error {
 	}
 	return r.storage.SaveRoutine(userID, routine)
 }
+
+func (r *GymRepository) GetRoutines(userID int) ([]domain.Routine, error) {
+	routines, err := r.storage.Routines(userID)
+	if err != nil {
+		return nil, err
+	}
+	return routines, nil
+}
+
+func (r *GymRepository) GetRoutine(routineID int) (domain.Routine, error) {
+	routine, err := r.storage.Routine(routineID)
+	if err != nil {
+		return domain.Routine{}, err
+	}
+	return routine, nil
+}

@@ -6,6 +6,8 @@ import "gymlog/domain"
 type RoutineRepository interface {
 	Exercises() ([]domain.Exercise, error)
 	SetRoutine(userID int, routine domain.Routine) error
+	GetRoutines(userID int) ([]domain.Routine, error)
+	GetRoutine(routineID int) (domain.Routine, error)
 }
 
 type UserRepository interface {

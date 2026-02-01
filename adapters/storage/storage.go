@@ -12,4 +12,6 @@ type Storage interface {
 	SaveSession(userID int, sessionToken string, csrfToken string) error
 	GetUserSession(userID int) (domain.UserSession, error)
 	DeleteSession(userID int) error
+	Routines(userID int) ([]domain.Routine, error)
+	Routine(routineID int) (domain.Routine, error)
 }

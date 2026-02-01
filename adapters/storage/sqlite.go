@@ -113,6 +113,13 @@ func (s *sqliteStorage) SaveSession(userID int, sessionToken string, csrfToken s
 		return err
 	}
 	defer tx.Rollback()
+
+	// Delete any existing sessions for this user to maintain only one session
+	_, err = tx.Exec("DELETE FROM sessions WHERE user_id = ?", userID)
+	if err != nil {
+		return err
+	}
+
 	_, err = tx.Exec("INSERT INTO sessions (user_id, session_token, csrf_token) VALUES (?, ?, ?)", userID, sessionToken, csrfToken)
 	if err != nil {
 		return err
@@ -143,4 +150,109 @@ func (s *sqliteStorage) DeleteSession(userID int) error {
 		return err
 	}
 	return tx.Commit()
+}
+
+func (s *sqliteStorage) Routines(userID int) ([]domain.Routine, error) {
+	rows, err := s.db.Query(`
+		SELECT r.id, r.name, r.description, re.exercise_id, re.sets, re.reps 
+		FROM routines r 
+		LEFT JOIN routine_exercises re ON r.id = re.routine_id 
+		WHERE r.user_id = ? 
+		ORDER BY r.id, re.order_index`, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	routineMap := make(map[int]*domain.Routine)
+	var routineOrder []int
+
+	for rows.Next() {
+		var routineID int
+		var name, description string
+		var exerciseID, sets, reps sql.NullInt64
+
+		err = rows.Scan(&routineID, &name, &description, &exerciseID, &sets, &reps)
+		if err != nil {
+			return nil, err
+		}
+
+		// Check if we've seen this routine before
+		if _, exists := routineMap[routineID]; !exists {
+			routineMap[routineID] = &domain.Routine{
+				ID:          routineID,
+				Name:        name,
+				Description: description,
+				Exercises:   []domain.ExerciseDetail{},
+			}
+			routineOrder = append(routineOrder, routineID)
+		}
+
+		// Add exercise if it exists (LEFT JOIN may return NULLs)
+		if exerciseID.Valid {
+			routineMap[routineID].Exercises = append(routineMap[routineID].Exercises, domain.ExerciseDetail{
+				ID:   int(exerciseID.Int64),
+				Sets: int(sets.Int64),
+				Reps: int(reps.Int64),
+			})
+		}
+	}
+
+	// Build result slice maintaining order
+	routines := make([]domain.Routine, 0, len(routineOrder))
+	for _, id := range routineOrder {
+		routines = append(routines, *routineMap[id])
+	}
+	return routines, nil
+}
+
+func (s *sqliteStorage) Routine(routineID int) (domain.Routine, error) {
+	rows, err := s.db.Query(`
+		SELECT r.id, r.name, r.description, re.exercise_id, re.sets, re.reps 
+		FROM routines r 
+		LEFT JOIN routine_exercises re ON r.id = re.routine_id 
+		WHERE r.id = ? 
+		ORDER BY re.order_index`, routineID)
+	if err != nil {
+		return domain.Routine{}, err
+	}
+	defer rows.Close()
+
+	var routine domain.Routine
+	found := false
+
+	for rows.Next() {
+		var id int
+		var name, description string
+		var exerciseID, sets, reps sql.NullInt64
+
+		err = rows.Scan(&id, &name, &description, &exerciseID, &sets, &reps)
+		if err != nil {
+			return domain.Routine{}, err
+		}
+
+		if !found {
+			routine = domain.Routine{
+				ID:          id,
+				Name:        name,
+				Description: description,
+				Exercises:   []domain.ExerciseDetail{},
+			}
+			found = true
+		}
+
+		if exerciseID.Valid {
+			routine.Exercises = append(routine.Exercises, domain.ExerciseDetail{
+				ID:   int(exerciseID.Int64),
+				Sets: int(sets.Int64),
+				Reps: int(reps.Int64),
+			})
+		}
+	}
+
+	if !found {
+		return domain.Routine{}, sql.ErrNoRows
+	}
+
+	return routine, nil
 }
