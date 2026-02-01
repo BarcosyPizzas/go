@@ -2,10 +2,15 @@ package storage
 
 import (
 	"database/sql"
+	_ "embed"
 	"gymlog/domain"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
+
+//go:embed
+var exercisesSeedSQL string
 
 // sqliteStorage is the implementation of the Storage interface for SQLite.
 type sqliteStorage struct {
@@ -21,7 +26,43 @@ func NewSqliteStorage(dbPath string) (Storage, error) {
 	if err := db.Ping(); err != nil {
 		return nil, err
 	}
-	return &sqliteStorage{db: db}, nil
+	storage := &sqliteStorage{db: db}
+	if err := storage.seedExercises(); err != nil {
+		return nil, err
+	}
+	return storage, nil
+}
+
+// seedExercises inserts default exercises if the table is empty.
+func (s *sqliteStorage) seedExercises() error {
+	var count int
+	err := s.db.QueryRow("SELECT COUNT(*) FROM exercises").Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return nil // Already seeded
+	}
+
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// Execute each INSERT statement from the embedded SQL file
+	statements := strings.Split(exercisesSeedSQL, "\n")
+	for _, stmt := range statements {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+		_, err = tx.Exec(stmt)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 func (s *sqliteStorage) Close() error {
